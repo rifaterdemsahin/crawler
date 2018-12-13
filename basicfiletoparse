@@ -8,6 +8,7 @@
 <a href="https://www.aol.com/" target="_blank">Worlds firt internet</a>
 <a href="https://github.com/rifaterdemsahin/crawler" target="_blank">Only internal Link</a>
 <a href="https://github.com/rifaterdemsahin/crawler/edit/master/basicfile" target="_blank">Second internal Link</a>
+<a href="https://github.com/rifaterdemsahin/crawler/edit/master/basicfileimageloc"><img src="flower.jpg" width="82" height="86" title="White flower" alt="Flower"></a>
 </body>
 
 </html>
