@@ -4,20 +4,61 @@
         "actions": {
             "For_each": {
                 "actions": {
+                    "HTTP": {
+                        "inputs": {
+                            "method": "GET",
+                            "uri": "@items('For_each')['Href']"
+                        },
+                        "runAfter": {},
+                        "type": "Http"
+                    },
+                    "Parse_JSON": {
+                        "inputs": {
+                            "content": "@body('recursiveCrawl')",
+                            "schema": {
+                                "items": {
+                                    "properties": {
+                                        "Href": {
+                                            "type": "string"
+                                        },
+                                        "Text": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "Href",
+                                        "Text"
+                                    ],
+                                    "type": "object"
+                                },
+                                "type": "array"
+                            }
+                        },
+                        "runAfter": {
+                            "recursiveCrawl": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "ParseJson"
+                    },
                     "recursiveCrawl": {
                         "inputs": {
-                            "body": "@items('For_each')['Href']",
+                            "body": "@body('HTTP')",
                             "function": {
                                 "id": "/subscriptions/1f2dbbd7-69f6-443f-961f-988dbc9ee66a/resourceGroups/wipro/providers/Microsoft.Web/sites/crawlerbasic/functions/mytrigger"
                             }
                         },
-                        "runAfter": {},
+                        "runAfter": {
+                            "HTTP": [
+                                "Succeeded"
+                            ]
+                        },
                         "type": "Function"
                     }
                 },
-                "foreach": "@body('Parse_JSON')",
+                "foreach": "@body('Parse_JSON_all_Initial_Links')",
                 "runAfter": {
-                    "Parse_JSON": [
+                    "Parse_JSON_all_Initial_Links": [
                         "Succeeded"
                     ]
                 },
@@ -35,7 +76,7 @@
                 },
                 "type": "Http"
             },
-            "Parse_JSON": {
+            "Parse_JSON_all_Initial_Links": {
                 "inputs": {
                     "content": "@body('mytrigger')",
                     "schema": {
