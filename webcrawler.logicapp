@@ -2,13 +2,79 @@
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
+            "For_each": {
+                "actions": {
+                    "recursiveCrawl": {
+                        "inputs": {
+                            "body": "@items('For_each')['Href']",
+                            "function": {
+                                "id": "/subscriptions/1f2dbbd7-69f6-443f-961f-988dbc9ee66a/resourceGroups/wipro/providers/Microsoft.Web/sites/crawlerbasic/functions/mytrigger"
+                            }
+                        },
+                        "runAfter": {},
+                        "type": "Function"
+                    }
+                },
+                "foreach": "@body('Parse_JSON')",
+                "runAfter": {
+                    "Parse_JSON": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            },
             "Get_Content": {
                 "inputs": {
                     "method": "GET",
-                    "uri": "https://raw.githubusercontent.com/rifaterdemsahin/crawler/master/basicfile"
+                    "uri": "@variables('sitename')"
                 },
-                "runAfter": {},
+                "runAfter": {
+                    "Set_variable": [
+                        "Succeeded"
+                    ]
+                },
                 "type": "Http"
+            },
+            "Parse_JSON": {
+                "inputs": {
+                    "content": "@body('mytrigger')",
+                    "schema": {
+                        "items": {
+                            "properties": {
+                                "Href": {
+                                    "type": "string"
+                                },
+                                "Text": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "Href",
+                                "Text"
+                            ],
+                            "type": "object"
+                        },
+                        "type": "array"
+                    }
+                },
+                "runAfter": {
+                    "mytrigger": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ParseJson"
+            },
+            "Set_variable": {
+                "inputs": {
+                    "name": "sitename",
+                    "value": "https://raw.githubusercontent.com/rifaterdemsahin/crawler/master/basicfiletoparse"
+                },
+                "runAfter": {
+                    "sitetocrawl": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "SetVariable"
             },
             "mytrigger": {
                 "inputs": {
@@ -23,6 +89,19 @@
                     ]
                 },
                 "type": "Function"
+            },
+            "sitetocrawl": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "sitename",
+                            "type": "String",
+                            "value": "https://raw.githubusercontent.com/rifaterdemsahin/crawler/master/basicfiletoparse"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
             }
         },
         "contentVersion": "1.0.0.0",
