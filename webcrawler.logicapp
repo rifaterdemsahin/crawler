@@ -1,59 +1,28 @@
 {
+    "$connections": {
+        "value": {
+            "azuretables": {
+                "connectionId": "/subscriptions/1f2dbbd7-69f6-443f-961f-988dbc9ee66a/resourceGroups/wipro/providers/Microsoft.Web/connections/azuretables-1",
+                "connectionName": "azuretables-1",
+                "id": "/subscriptions/1f2dbbd7-69f6-443f-961f-988dbc9ee66a/providers/Microsoft.Web/locations/ukwest/managedApis/azuretables"
+            }
+        }
+    },
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
             "For_each": {
                 "actions": {
-                    "HTTP": {
+                    "Get_and_Persist_Links": {
                         "inputs": {
-                            "method": "GET",
-                            "uri": "@items('For_each')['Href']"
+                            "body": {
+                                "url": "@{items('For_each')['Href']}"
+                            },
+                            "method": "POST",
+                            "uri": "https://prod-07.ukwest.logic.azure.com:443/workflows/0c2a75e423b34106bad3a44bd934eae0/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QQspMkAi6-AwW9c9E7HcxM734PuvUns_liiCUAcyXyY"
                         },
                         "runAfter": {},
                         "type": "Http"
-                    },
-                    "Parse_JSON": {
-                        "inputs": {
-                            "content": "@body('recursiveCrawl')",
-                            "schema": {
-                                "items": {
-                                    "properties": {
-                                        "Href": {
-                                            "type": "string"
-                                        },
-                                        "Text": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "Href",
-                                        "Text"
-                                    ],
-                                    "type": "object"
-                                },
-                                "type": "array"
-                            }
-                        },
-                        "runAfter": {
-                            "recursiveCrawl": [
-                                "Succeeded"
-                            ]
-                        },
-                        "type": "ParseJson"
-                    },
-                    "recursiveCrawl": {
-                        "inputs": {
-                            "body": "@body('HTTP')",
-                            "function": {
-                                "id": "/subscriptions/1f2dbbd7-69f6-443f-961f-988dbc9ee66a/resourceGroups/wipro/providers/Microsoft.Web/sites/crawlerbasic/functions/mytrigger"
-                            }
-                        },
-                        "runAfter": {
-                            "HTTP": [
-                                "Succeeded"
-                            ]
-                        },
-                        "type": "Function"
                     }
                 },
                 "foreach": "@body('Parse_JSON_all_Initial_Links')",
@@ -70,7 +39,7 @@
                     "uri": "@variables('sitename')"
                 },
                 "runAfter": {
-                    "Set_variable": [
+                    "Persist_Links_In_Main": [
                         "Succeeded"
                     ]
                 },
@@ -104,6 +73,45 @@
                     ]
                 },
                 "type": "ParseJson"
+            },
+            "Persist_Links_In_Main": {
+                "inputs": {
+                    "body": {
+                        "url": "@{variables('sitename')}"
+                    },
+                    "method": "POST",
+                    "uri": "https://prod-07.ukwest.logic.azure.com:443/workflows/0c2a75e423b34106bad3a44bd934eae0/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QQspMkAi6-AwW9c9E7HcxM734PuvUns_liiCUAcyXyY"
+                },
+                "runAfter": {
+                    "Save_Main_Site": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Http"
+            },
+            "Save_Main_Site": {
+                "inputs": {
+                    "body": {
+                        "Link": "@{variables('sitename')}",
+                        "Parent": "@{variables('sitename')}",
+                        "PartitionKey": "mypartitionkey",
+                        "RowKey": "basicfiletoparse",
+                        "Text": "main-link"
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['azuretables']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/Tables/@{encodeURIComponent('sitelinks')}/entities"
+                },
+                "runAfter": {
+                    "Set_variable": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "ApiConnection"
             },
             "Set_variable": {
                 "inputs": {
@@ -147,7 +155,12 @@
         },
         "contentVersion": "1.0.0.0",
         "outputs": {},
-        "parameters": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
         "triggers": {
             "Recurrence": {
                 "recurrence": {
