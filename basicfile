@@ -1,0 +1,10 @@
+<html>
+<head>
+<title>Basic Crawl Tester Document</title>
+</head>
+
+<body>
+<a href="https://www.google.com/" target="_blank">Visited Link!</a>
+</body>
+
+</html>
