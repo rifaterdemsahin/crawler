@@ -9,29 +9,25 @@ using System.Text.RegularExpressions;
 
 public static async Task<IActionResult> Run(HttpRequest req, ILogger log)
 {
-    log.LogInformation("C# HTTP trigger function processed a request.");
-
- //   string name = req.Query["name"];
-
-   string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+     string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
      log.LogInformation("requestBody received");
-   //dynamic data = JsonConvert.DeserializeObject(requestBody);
      log.LogInformation(requestBody);
+     
+     var links = LinkFinder.Find(requestBody);
+     List<LinkItem> myResult = new List<LinkItem>();
 
-  //  name = name ?? data?.name;
-
-    // return name != null
-    //     ? (ActionResult)new OkObjectResult($"Hello, {name}")
-    //     : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
-
-        var links = LinkFinder.Find(requestBody);
-        foreach (LinkItem i in links)
+         foreach (LinkItem i in links)
         {
-            log.LogInformation(i.ToString());
+            if(i.Href.StartsWith("https://github.com"))
+            {
+               var newItem = new LinkItem{Href=i.Href,Text=i.Text};
+               myResult.Add(newItem);
+            }
+       
         }
+        string output = JsonConvert.SerializeObject(myResult);
 
-            return (ActionResult)new OkObjectResult(requestBody);
-          //  return (ActionResult)new OkObjectResult($"Completed the process2");
+            return (ActionResult)new OkObjectResult(output);
 }
 
 public struct LinkItem
