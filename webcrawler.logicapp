@@ -1,7 +1,30 @@
 {
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-        "actions": {},
+        "actions": {
+            "Get_Content": {
+                "inputs": {
+                    "method": "GET",
+                    "uri": "https://raw.githubusercontent.com/rifaterdemsahin/crawler/master/basicfile"
+                },
+                "runAfter": {},
+                "type": "Http"
+            },
+            "mytrigger": {
+                "inputs": {
+                    "body": "@body('Get_Content')",
+                    "function": {
+                        "id": "/subscriptions/1f2dbbd7-69f6-443f-961f-988dbc9ee66a/resourceGroups/wipro/providers/Microsoft.Web/sites/crawlerbasic/functions/mytrigger"
+                    }
+                },
+                "runAfter": {
+                    "Get_Content": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Function"
+            }
+        },
         "contentVersion": "1.0.0.0",
         "outputs": {},
         "parameters": {},
